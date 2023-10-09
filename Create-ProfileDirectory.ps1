@@ -207,10 +207,10 @@ For ($i = 1; $i -le $num_of_documents; $i++) {
   $paragraphs = Get-Random -Minimum 5 -Maximum 30
 
   # Generoidaan satunnainen teksti.
-  $content = Invoke-WebRequest -URI "https://baconipsum.com/api/?type=meat-and-filler&paras=$paragraphs&format=text"
+  $content = Invoke-WebRequest -URI "https://baconipsum.com/api/?type=meat-and-filler&paras=$paragraphs&format=text" -UseBasicParsing
 
   # Generoidaan dokumentin satunnaisnimi.
-  $filename_start = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" | ConvertFrom-Json
+  $filename_start = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" -UseBasicParsing | ConvertFrom-Json
   
   # Generoiraan luotavan tiedoston tyyppi.
   #  0 = txt
@@ -295,7 +295,7 @@ For ($i = 1; $i -le $num_of_downloaded_stockfiles; $i++) {
   $stockuri = "https://query1.finance.yahoo.com/v7/finance/download/$($stock_name[1])?period1=$stock_starttime&period2=$stock_endtime&interval=1d&events=history&includeAdjustedClose=true"
 
   # Ladataan tiedot.
-  $stockdata = Invoke-WebRequest -URI $stockuri
+  $stockdata = Invoke-WebRequest -URI $stockuri -UseBasicParsing
 
   # Muodostetaan tiedostonimi ja tallennetaan tiedostoon.
   $filename = Join-Path -Path $path_downloads -ChildPath "$($stock_name[0]).csv"
@@ -315,7 +315,7 @@ for ($i = 1; $i -le $num_of_downloaded_images; $i++) {
   Write-Progress -Activity "Luodaan Downloads-kansion sisältö" -Status "Ladataan JPG-kuvaa ($i / $num_of_downloaded_images)" -PercentComplete 75
 
   # Generoidaan kuvan satunnaisnimi.
-  $filename_image = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" | ConvertFrom-Json
+  $filename_image = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" -UseBasicParsing | ConvertFrom-Json
   $filename = Join-Path -Path $path_downloads -ChildPath "$filename_image.jpg"
 
   # Ladataan kuva.
