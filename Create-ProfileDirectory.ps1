@@ -13,14 +13,20 @@
 .EXAMPLE
     PS> .\Create-ProfileDirectory.ps1 -Name kayttaja
 .NOTES
-    Author: Pekka Tapio Aalto
-    Date:   7.8.2023
+    Author:   Pekka Tapio Aalto
+    Date:     7.8.2023
+    Updates:  Pirkko Sutinen
+    Date:     10.10.2023
 #>
 
 param (
   # Luotavan profiilikansion nimi
-  [string]$Name = "user_" + (Get-Random -Maximum 1000)
+  [string]$Name = "user_" + (Get-Random -Maximum 1000),
+  # Piilotetaanko osa tiedostoista
+  [switch]$Hidden
 )
+
+
 
 function Create-Docx {
   <# 
@@ -329,6 +335,22 @@ for ($i = 1; $i -le $num_of_downloaded_images; $i++) {
   $(Get-Item $filename).LastAccessTime=$($imagedate)
   $(Get-Item $filename).LastWriteTime=$($imagedate)
 
+}
+
+#----------------------------------------------------
+#Jos on annettu parametri -Hidden niin piilotetaan osa tiedostoista
+#----------------------------------------------------
+
+if ($Hidden) {
+  # Tulostetaan suoritustilannepalkki.
+  Write-Progress -Activity "Piilotetaan tiedostoja" -PercentComplete 90
+
+  # Piilotetaan 10% tiedostoista.
+  $files = Get-ChildItem -Path $path_profile -Recurse -File | Get-Random -Count ([int]((Get-ChildItem -Path $path_profile -Recurse -File).Count * 0.1))
+  foreach ($file in $files) {
+    $file.Attributes = "Hidden"
+  }
+  write-host "Piilotettiin $files.Count tiedostoa"
 }
 
 # Selvitetään hakemistojen luonti- ja kirjoituspäivät.
