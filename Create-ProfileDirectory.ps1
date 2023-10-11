@@ -13,14 +13,20 @@
 .EXAMPLE
     PS> .\Create-ProfileDirectory.ps1 -Name kayttaja
 .NOTES
-    Author: Pekka Tapio Aalto
-    Date:   7.8.2023
+    Author:   Pekka Tapio Aalto
+    Date:     7.8.2023
+    Updates:  Pirkko Sutinen
+    Date:     10.10.2023
 #>
 
 param (
   # Luotavan profiilikansion nimi
-  [string]$Name = "user_" + (Get-Random -Maximum 1000)
+  [string]$Name = "user_" + (Get-Random -Maximum 1000),
+  # Piilotetaanko osa tiedostoista
+  [switch]$Hidden
 )
+
+
 
 function Create-Docx {
   <# 
@@ -207,10 +213,10 @@ For ($i = 1; $i -le $num_of_documents; $i++) {
   $paragraphs = Get-Random -Minimum 5 -Maximum 30
 
   # Generoidaan satunnainen teksti.
-  $content = Invoke-WebRequest -URI "https://baconipsum.com/api/?type=meat-and-filler&paras=$paragraphs&format=text"
+  $content = Invoke-WebRequest -URI "https://baconipsum.com/api/?type=meat-and-filler&paras=$paragraphs&format=text" -UseBasicParsing
 
   # Generoidaan dokumentin satunnaisnimi.
-  $filename_start = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" | ConvertFrom-Json
+  $filename_start = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" -UseBasicParsing | ConvertFrom-Json
   
   # Generoiraan luotavan tiedoston tyyppi.
   #  0 = txt
@@ -295,7 +301,7 @@ For ($i = 1; $i -le $num_of_downloaded_stockfiles; $i++) {
   $stockuri = "https://query1.finance.yahoo.com/v7/finance/download/$($stock_name[1])?period1=$stock_starttime&period2=$stock_endtime&interval=1d&events=history&includeAdjustedClose=true"
 
   # Ladataan tiedot.
-  $stockdata = Invoke-WebRequest -URI $stockuri
+  $stockdata = Invoke-WebRequest -URI $stockuri -UseBasicParsing
 
   # Muodostetaan tiedostonimi ja tallennetaan tiedostoon.
   $filename = Join-Path -Path $path_downloads -ChildPath "$($stock_name[0]).csv"
@@ -315,7 +321,7 @@ for ($i = 1; $i -le $num_of_downloaded_images; $i++) {
   Write-Progress -Activity "Luodaan Downloads-kansion sisältö" -Status "Ladataan JPG-kuvaa ($i / $num_of_downloaded_images)" -PercentComplete 75
 
   # Generoidaan kuvan satunnaisnimi.
-  $filename_image = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" | ConvertFrom-Json
+  $filename_image = Invoke-WebRequest -URI "https://random-word-api.vercel.app/api?words=1" -UseBasicParsing | ConvertFrom-Json
   $filename = Join-Path -Path $path_downloads -ChildPath "$filename_image.jpg"
 
   # Ladataan kuva.
@@ -329,6 +335,22 @@ for ($i = 1; $i -le $num_of_downloaded_images; $i++) {
   $(Get-Item $filename).LastAccessTime=$($imagedate)
   $(Get-Item $filename).LastWriteTime=$($imagedate)
 
+}
+
+#----------------------------------------------------
+#Jos on annettu parametri -Hidden niin piilotetaan osa tiedostoista
+#----------------------------------------------------
+
+if ($Hidden) {
+  # Tulostetaan suoritustilannepalkki.
+  Write-Progress -Activity "Piilotetaan tiedostoja" -PercentComplete 90
+
+  # Piilotetaan 10% tiedostoista.
+  $files = Get-ChildItem -Path $path_profile -Recurse -File | Get-Random -Count ([int]((Get-ChildItem -Path $path_profile -Recurse -File).Count * 0.1))
+  foreach ($file in $files) {
+    $file.Attributes = "Hidden"
+  }
+  write-host "Piilotettiin $files.Count tiedostoa"
 }
 
 # Selvitetään hakemistojen luonti- ja kirjoituspäivät.
